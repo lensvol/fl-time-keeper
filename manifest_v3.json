@@ -1,0 +1,36 @@
+{
+  "name": "FL Time Keeper",
+  "description": "Display convenient reminder when Time the Healer comes.",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.fallenlondon.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "16": "/images/fl-time-keeper-icon-16.png",
+      "32": "/images/fl-time-keeper-icon-32.png",
+      "48": "/images/fl-time-keeper-icon-48.png",
+      "128": "/images/fl-time-keeper-icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "/images/fl-time-keeper-icon-16.png",
+    "32": "/images/fl-time-keeper-icon-32.png",
+    "48": "/images/fl-time-keeper-icon-48.png",
+    "128": "/images/fl-time-keeper-icon-128.png"
+  },
+  "web_accessible_resources": [{
+    "resources": ["inject.js"],
+    "matches": ["https://www.fallenlondon.com/*"]
+  }]
+}
