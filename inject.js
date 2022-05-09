@@ -1,6 +1,6 @@
 (function () {
     let authToken = null;
-    let tthMoment = null;
+    let tthMoment = new Date().getTime() + 60 * 1000; //null;
     let tthDisplay = null;
     let tthContainer = null;
 
@@ -8,7 +8,7 @@
         console.debug(`[FL Time Keeper] ${message}`);
     }
 
-    function tillNextDisplayUpdate() {
+    function tillNextStateUpdate() {
         const nowMinutes = new Date().getMinutes();
         const destMinutes = new Date(tthMoment).getMinutes();
 
@@ -17,6 +17,23 @@
         } else {
             return ((60 - nowMinutes) + destMinutes) * 60 * 1000;
         }
+    }
+
+    function updateState() {
+        const nowMoment = new Date().getTime();
+
+        if (tthMoment == null|| nowMoment >= tthMoment) {
+            getTTHMoment()
+                .then(moment => {
+                    tthMoment = moment;
+                    updateState();
+                });
+            return;
+        }
+
+        updateTTHDisplay();
+        debug(`Next display update in ${tillNextStateUpdate() / (60 * 1000)} minutes.`);
+        setTimeout(updateState, tillNextStateUpdate());
     }
 
     function updateTTHDisplay() {
@@ -45,9 +62,6 @@
         }
 
         tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
-
-        debug(`Next display update in ${tillNextDisplayUpdate() / 1000}`);
-        setTimeout(updateTTHDisplay, tillNextDisplayUpdate());
     }
 
     function insertTTHDisplay(cardsDiv) {
@@ -105,11 +119,7 @@
                 authToken = value;
                 debug("Got FL auth token!");
 
-                getTTHMoment()
-                    .then(moment => {
-                        tthMoment = moment;
-                        updateTTHDisplay();
-                    });
+                updateState();
             }
             return original_function.apply(this, arguments);
         }
@@ -143,7 +153,7 @@
 
                 if (insertionPoint != null) {
                     insertTTHDisplay(insertionPoint);
-                    updateTTHDisplay();
+                    updateState();
                     break;
                 }
             }
