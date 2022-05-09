@@ -3,6 +3,7 @@
     let authToken = null;
     let tthMoment = null;
     let tthDisplay = null;
+    let tthContainer = null;
 
     function debug(message) {
         console.debug(`[FL Time Keeper] ${message}`);
@@ -54,6 +55,7 @@
         contentsDiv.appendChild(title);
 
         tthDisplay = title;
+        tthContainer = containerDiv;
 
         displayDiv.appendChild(contentsDiv);
         containerDiv.appendChild(displayDiv);
@@ -108,15 +110,43 @@
         for (let m = 0; m < mutations.length; m++) {
             const mutation = mutations[m];
 
-            for (let n = 0; n < mutation.addedNodes.length; n++) {
+            for (let n = 0; n < mutation.addedNodes.length && tthContainer == null; n++) {
                 const node = mutation.addedNodes[n];
 
-                if (node.nodeName.toLowerCase() === "div") {
+                if (node.nodeName.toLowerCase() !== "div") {
+                    continue;
+                }
+
+                let insertionPoint = null;
+
+                if (node.classList.contains("cards")) {
+                    insertionPoint = node;
+                } else {
                     const containers = node.getElementsByClassName("cards")
                     if (containers.length !== 0) {
-                        insertTTHDisplay(containers[0]);
-                        updateTTHDisplay();
+                        insertionPoint = containers[0];
                     }
+                }
+
+                if (insertionPoint != null) {
+                    insertTTHDisplay(insertionPoint);
+                    updateTTHDisplay();
+                    break;
+                }
+            }
+
+            for (let n = 0; n < mutation.removedNodes.length && tthContainer != null; n++) {
+                const node = mutation.removedNodes[n];
+
+                if (node.nodeName.toLowerCase() !== "div") {
+                    continue;
+                }
+
+                const containers = node.getElementsByClassName("cards")
+                if (containers.length !== 0 || node.classList.contains("cards")) {
+                    tthContainer.remove();
+                    tthContainer = tthDisplay = null;
+                    break;
                 }
             }
         }
