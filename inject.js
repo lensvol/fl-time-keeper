@@ -1,5 +1,4 @@
 (function () {
-    const DONE = 4;
     let authToken = null;
     let tthMoment = null;
     let tthDisplay = null;
@@ -7,6 +6,17 @@
 
     function debug(message) {
         console.debug(`[FL Time Keeper] ${message}`);
+    }
+
+    function tillNextDisplayUpdate() {
+        const nowMinutes = new Date().getMinutes();
+        const destMinutes = new Date(tthMoment).getMinutes();
+
+        if (nowMinutes < destMinutes) {
+            return (destMinutes - nowMinutes) * 60 * 1000;
+        } else {
+            return ((60 - nowMinutes) + destMinutes) * 60 * 1000;
+        }
     }
 
     function updateTTHDisplay() {
@@ -20,7 +30,7 @@
         const hoursLeft = Math.floor(minutesLeft / 60);
         const daysLeft = Math.floor(hoursLeft / 24);
 
-        let remainingText = "soon.";
+        let remainingText;
 
         debug(`Time till TTH comes: ${daysLeft} days or ${hoursLeft} hours or ${minutesLeft} minutes.`)
 
@@ -35,6 +45,9 @@
         }
 
         tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
+
+        debug(`Next display update in ${tillNextDisplayUpdate() / 1000}`);
+        setTimeout(updateTTHDisplay, tillNextDisplayUpdate());
     }
 
     function insertTTHDisplay(cardsDiv) {
