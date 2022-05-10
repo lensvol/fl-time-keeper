@@ -1,6 +1,6 @@
 (function () {
     let authToken = null;
-    let tthMoment = new Date().getTime() + 60 * 1000; //null;
+    let tthMoment = null;
     let tthDisplay = null;
     let tthContainer = null;
 
