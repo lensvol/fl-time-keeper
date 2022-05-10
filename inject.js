@@ -11,6 +11,10 @@
         console.debug(`[FL Time Keeper] ${message}`);
     }
 
+    function error(message) {
+        console.error(`[FL Time Keeper] ${message}`);
+    }
+
     function tillNextStateUpdate() {
         const now = new Date();
 
@@ -45,7 +49,8 @@
                 .then(moment => {
                     tthMoment = moment;
                     updateState();
-                });
+                })
+                .catch(err => error(err));
             return;
         }
 
