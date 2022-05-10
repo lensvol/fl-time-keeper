@@ -1,4 +1,7 @@
 (function () {
+    const MILLISECONDS_IN_MINUTE = 60 * 1000;
+    const MILLISECONDS_IN_HOUR = 60 * MILLISECONDS_IN_MINUTE;
+    
     let authToken = null;
     let tthMoment = null;
     let tthDisplay = null;
@@ -11,17 +14,26 @@
     function tillNextStateUpdate() {
         const now = new Date();
 
-        if (tthMoment > now.getTime() &&  tthMoment - now.getTime() < 60 * 60 * 1000) {
-            return 60 * 1000;
+        if (now.getTime() > tthMoment) {
+            // TTH can be a little late and TTH endpoint can still display
+            // old data past the specified moment. We'll take some time
+            // until querying API again.
+            return 10 * MILLISECONDS_IN_MINUTE;
+        } else if (tthMoment - now.getTime() < MILLISECONDS_IN_HOUR) {
+            // When there is a less then one hour left, update the display
+            // once per minute.
+            return MILLISECONDS_IN_MINUTE;
         }
 
         const nowMinutes = now.getMinutes();
         const destMinutes = new Date(tthMoment).getMinutes();
 
+        // Since TTH does not arrive on the clear cut hourly boundary,
+        // we need first to align our updates with the precise time in minutes.
         if (nowMinutes < destMinutes) {
-            return (destMinutes - nowMinutes) * 60 * 1000;
+            return (destMinutes - nowMinutes) * MILLISECONDS_IN_MINUTE;
         } else {
-            return ((60 - nowMinutes) + destMinutes) * 60 * 1000;
+            return ((60 - nowMinutes) + destMinutes) * MILLISECONDS_IN_MINUTE;
         }
     }
 
@@ -38,7 +50,7 @@
         }
 
         updateTTHDisplay();
-        debug(`Next display update in ${tillNextStateUpdate() / (60 * 1000)} minutes.`);
+        debug(`Next display update in ${tillNextStateUpdate() / (MILLISECONDS_IN_MINUTE)} minutes.`);
         setTimeout(updateState, tillNextStateUpdate());
     }
 
@@ -49,7 +61,7 @@
 
         const now = new Date().getTime();
 
-        const minutesLeft = Math.round((tthMoment - now) / (60 * 1000));
+        const minutesLeft = Math.round((tthMoment - now) / (MILLISECONDS_IN_MINUTE));
         const hoursLeft = Math.floor(minutesLeft / 60);
         const daysLeft = Math.ceil(hoursLeft / 24);
 
