@@ -97,7 +97,7 @@
     }
 
     async function getTTHMoment() {
-        debug("Trying to fetch user info from server...");
+        debug("Trying to fetch TTH arrival moment from server...");
         const response = await fetch(
             "https://api.fallenlondon.com/api/settings/timethehealer",
             {
