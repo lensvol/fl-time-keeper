@@ -1,11 +1,15 @@
 (function () {
+    const DONE = 4;
     const MILLISECONDS_IN_MINUTE = 60 * 1000;
     const MILLISECONDS_IN_HOUR = 60 * MILLISECONDS_IN_MINUTE;
     
     let authToken = null;
     let tthMoment = null;
     let tthDisplay = null;
+    let infoDisplay = null;
     let tthContainer = null;
+
+    const qualities = new Map();
 
     function debug(message) {
         console.debug(`[FL Time Keeper] ${message}`);
@@ -85,6 +89,16 @@
         }
 
         tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
+
+        const currentMakingWaves = qualities.get("Making Waves") || 0;
+        const currentNotability = 100; //qualities.get("Notability") || 0;
+        if (currentMakingWaves < currentNotability) {
+            infoDisplay.textContent = `You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`;
+            infoDisplay.style.display = "block";
+        } else {
+            infoDisplay.style.display = "hidden";
+        }
+
     }
 
     function insertTTHDisplay(cardsDiv) {
@@ -104,6 +118,14 @@
         title.textContent = "Time the Healer cometh.";
         contentsDiv.appendChild(title);
 
+        const info = document.createElement("h2");
+        info.setAttribute("id", "tth_info_display");
+        info.classList.add("media__heading", "heading", "heading--3", "storylet__heading");
+        info.style.cssText = "text-align: center; display: hidden;";
+        info.textContent = "";
+        contentsDiv.appendChild(info);
+
+        infoDisplay = info;
         tthDisplay = title;
         tthContainer = containerDiv;
 
@@ -148,8 +170,51 @@
         }
     }
 
+    function parseResponse(response) {
+        if (this.readyState !== DONE) {
+            return;
+        }
+
+        let targetUrl = response.currentTarget.responseURL;
+
+        if (!targetUrl.includes("fallenlondon")) {
+            return;
+        }
+
+        if (!((targetUrl.includes("/api/map")
+            || targetUrl.includes("/storylet")
+            || targetUrl.includes("/choosebranch")
+            || targetUrl.includes("/api/character/actions")
+            || targetUrl.includes("/myself")))) {
+            return;
+        }
+
+        let data = JSON.parse(response.target.responseText);
+
+        if (response.currentTarget.responseURL.includes("/api/character/myself")) {
+            for (const group of data.possessions) {
+                for (const quality of group.possessions) {
+                    if (quality.nature !== "Status") {
+                        continue;
+                    }
+
+                    qualities.set(quality.name, quality.level);
+                }
+            }
+        }
+    }
+
+    function openBypass(original_function) {
+        return function (method, url, async) {
+            this._targetUrl = url;
+            this.addEventListener("readystatechange", parseResponse);
+            return original_function.apply(this, arguments);
+        };
+    }
+
     debug("Setting up API interceptors.");
     XMLHttpRequest.prototype.setRequestHeader = installAuthSniffer(XMLHttpRequest.prototype.setRequestHeader);
+    XMLHttpRequest.prototype.open = openBypass(XMLHttpRequest.prototype.open);
 
     debug("Setting up DOM mutation observer.")
     let mainContentObserver = new MutationObserver(((mutations, observer) => {
@@ -191,7 +256,7 @@
                 const containers = node.getElementsByClassName("cards")
                 if (containers.length !== 0 || node.classList.contains("cards")) {
                     tthContainer.remove();
-                    tthContainer = tthDisplay = null;
+                    tthContainer = tthDisplay = infoDisplay = null;
                     break;
                 }
             }
