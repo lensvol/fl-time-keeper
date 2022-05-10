@@ -51,7 +51,7 @@
 
         const minutesLeft = Math.round((tthMoment - now) / (60 * 1000));
         const hoursLeft = Math.floor(minutesLeft / 60);
-        const daysLeft = Math.floor(hoursLeft / 24);
+        const daysLeft = Math.ceil(hoursLeft / 24);
 
         let remainingText;
 
