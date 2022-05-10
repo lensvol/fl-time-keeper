@@ -9,7 +9,13 @@
     }
 
     function tillNextStateUpdate() {
-        const nowMinutes = new Date().getMinutes();
+        const now = new Date();
+
+        if (tthMoment > now.getTime() &&  tthMoment - now.getTime() < 60 * 60 * 1000) {
+            return 60 * 1000;
+        }
+
+        const nowMinutes = now.getMinutes();
         const destMinutes = new Date(tthMoment).getMinutes();
 
         if (nowMinutes < destMinutes) {
