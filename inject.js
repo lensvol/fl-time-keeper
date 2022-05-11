@@ -91,7 +91,7 @@
         tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
 
         const currentMakingWaves = qualities.get("Making Waves") || 0;
-        const currentNotability = 100; //qualities.get("Notability") || 0;
+        const currentNotability = qualities.get("Notability") || 0;
         if (currentMakingWaves < currentNotability) {
             infoDisplay.textContent = `You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`;
             infoDisplay.style.display = "block";
@@ -190,6 +190,29 @@
         }
 
         let data = JSON.parse(response.target.responseText);
+
+        if (targetUrl.endsWith("/api/storylet/choosebranch")) {
+            if ("messages" in data) {
+                // NB: For some inexplicable reason gaining something is marked as "decrease" *sigh*
+                for (const change of data.messages) {
+                    if (change["type"] !== "StandardQualityChangeMessage"
+                        && change["type"] !== "PyramidQualityChangeMessage") {
+                        continue;
+                    }
+
+                    if (change.possession.nature !== "Status") {
+                        continue;
+                    }
+
+                    const currentLevel = qualities.get(change.possession.name) || 0;
+                    if (currentLevel !== change.possession.level) {
+                        console.debug(`${change.possession.name}: ${currentLevel} -> ${change.possession.level}`);
+                        qualities.set(change.possession.name, change.possession.level);
+                    }
+                }
+
+            }
+        }
 
         if (response.currentTarget.responseURL.includes("/api/character/myself")) {
             for (const group of data.possessions) {
