@@ -1,6 +1,6 @@
 # FL Time Keeper
 
-[![License](https://img.shields.io/github/license/lensvol/fl-time-keeper)](https://github.com/lensvol/fl-time-keeper/blob/master/LICENSE) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/lensvol/fl-time-keeper)  
+[![License](https://img.shields.io/github/license/lensvol/fl-time-keeper)](https://github.com/lensvol/fl-time-keeper/blob/master/LICENSE) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/lensvol/fl-time-keeper) [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/aphfpnlcbhnaipmakigbajglopeiodfb)](https://chrome.google.com/webstore/detail/fl-time-keeper/aphfpnlcbhnaipmakigbajglopeiodfb) [![Mozilla Add-on](https://img.shields.io/amo/v/fl-time-keeper)](https://addons.mozilla.org/en-GB/firefox/addon/fl-time-keeper/) 
 
 ![screenshot](https://raw.githubusercontent.com/lensvol/fl-time-keeper/master/screenshot.png)
 
@@ -10,6 +10,8 @@ _NB: This extension is **not** yet whitelisted by Failbetter Games. Use at your 
 
 Grab it here:
 * [Releases page](https://github.com/lensvol/fl-time-keeper/releases) (most up-to-date, see below for instructions)
+* [Google Web Store](https://chrome.google.com/webstore/detail/fl-time-keeper/aphfpnlcbhnaipmakigbajglopeiodfb)
+* [Mozilla Add-on Store](https://addons.mozilla.org/en-GB/firefox/addon/fl-time-keeper/)
 
 
 ## Manual installation
