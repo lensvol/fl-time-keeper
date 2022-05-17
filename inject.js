@@ -105,6 +105,11 @@
         const containerDiv = document.createElement("div");
         containerDiv.classList.add("media", "storylet");
 
+        // We need this to prevent Fallen London Favourites extension from
+        // inserting marked storylets _before_ our own.
+        containerDiv.classList.add("storylet_favourite");
+        containerDiv.style.cssText = "outline: none;";
+
         const displayDiv = document.createElement("div");
         displayDiv.className = "storylet__body";
 
