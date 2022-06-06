@@ -96,13 +96,18 @@
         debug(`Time till this moment comes: ${daysLeft} days or ${hoursLeft} hours or ${minutesLeft} minutes.`)
 
         if (daysLeft > 0) {
-            remainingText = `in ${daysLeft} days.`;
+            const unit = daysLeft === 1 ? "day" : "days";
+
+            remainingText = `in ${daysLeft} ${unit}.`;
         } else if (hoursLeft > 0) {
-            remainingText = `in ${hoursLeft} hours.`
+            const unit = hoursLeft === 1 ? "hour" : "hours";
+
+            remainingText = `in ${hoursLeft} ${unit}.`;
         } else if (minutesLeft > 0) {
-            remainingText = `in ${minutesLeft} minutes.`
+            const unit = minutesLeft === 1 ? "minute" : "minutes";
+            remainingText = `in ${minutesLeft} ${unit}.`;
         } else {
-            remainingText = `again someday.`
+            remainingText = `again someday.`;
         }
 
         return remainingText;
