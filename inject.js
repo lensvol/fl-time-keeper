@@ -2,14 +2,27 @@
     const DONE = 4;
     const MILLISECONDS_IN_MINUTE = 60 * 1000;
     const MILLISECONDS_IN_HOUR = 60 * MILLISECONDS_IN_MINUTE;
-    
+    const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
+
     let authToken = null;
-    let tthMoment = null;
     let tthDisplay = null;
     let infoDisplay = null;
     let tthContainer = null;
 
+    let tthMoment = null;
+    let balmoralMoment = null;
+
     const qualities = new Map();
+
+    function saveTrackedMoments() {
+        if (balmoralMoment) {
+            localStorage.fl_tk_balmoral_moment = balmoralMoment;
+        }
+    }
+
+    function loadTrackedMoments() {
+        balmoralMoment = localStorage.fl_tk_balmoral_moment || null;
+    }
 
     function debug(message) {
         console.debug(`[FL Time Keeper] ${message}`);
@@ -59,24 +72,20 @@
         }
 
         updateTTHDisplay();
+        updateInfoDisplay();
         debug(`Next display update in ${tillNextStateUpdate() / (MILLISECONDS_IN_MINUTE)} minutes.`);
         setTimeout(updateState, tillNextStateUpdate());
     }
 
-    function updateTTHDisplay() {
-        if (tthDisplay == null) {
-            return;
-        }
-
+    function calculateRemainingTime(moment) {
         const now = new Date().getTime();
-
-        const minutesLeft = Math.round((tthMoment - now) / (MILLISECONDS_IN_MINUTE));
+        const minutesLeft = Math.round((moment - now) / (MILLISECONDS_IN_MINUTE));
         const hoursLeft = Math.floor(minutesLeft / 60);
         const daysLeft = Math.ceil(hoursLeft / 24);
 
         let remainingText;
 
-        debug(`Time till TTH comes: ${daysLeft} days or ${hoursLeft} hours or ${minutesLeft} minutes.`)
+        debug(`Time till this moment comes: ${daysLeft} days or ${hoursLeft} hours or ${minutesLeft} minutes.`)
 
         if (daysLeft > 0) {
             remainingText = `in ${daysLeft} days.`;
@@ -88,17 +97,19 @@
             remainingText = `again someday.`
         }
 
-        tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
+        return remainingText;
+    }
 
-        const currentMakingWaves = qualities.get("Making Waves") || 0;
-        const currentNotability = qualities.get("Notability") || 0;
-        if (currentMakingWaves < currentNotability) {
-            infoDisplay.textContent = `You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`;
-            infoDisplay.style.display = "block";
-        } else {
-            infoDisplay.style.display = "hidden";
+    function updateTTHDisplay() {
+        if (tthDisplay == null) {
+            return;
         }
 
+        const remainingText = calculateRemainingTime(tthMoment);
+
+        tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
+
+        updateInfoDisplay();
     }
 
     function insertTTHDisplay(cardsDiv) {
@@ -123,21 +134,58 @@
         title.textContent = "Time the Healer cometh.";
         contentsDiv.appendChild(title);
 
-        const info = document.createElement("h2");
-        info.setAttribute("id", "tth_info_display");
-        info.classList.add("media__heading", "heading", "heading--3", "storylet__heading");
-        info.style.cssText = "text-align: center; display: hidden;";
-        info.textContent = "";
-        contentsDiv.appendChild(info);
-
-        infoDisplay = info;
+        infoDisplay = document.createElement("div");
         tthDisplay = title;
         tthContainer = containerDiv;
 
+        contentsDiv.appendChild(infoDisplay);
         displayDiv.appendChild(contentsDiv);
         containerDiv.appendChild(displayDiv);
 
         cardsDiv.parentNode.insertBefore(containerDiv, cardsDiv.nextSibling);
+    }
+
+    function updateInfoDisplay() {
+        const lines = [];
+
+        if (infoDisplay == null) {
+            return;
+        }
+
+        const currentMakingWaves = qualities.get("Making Waves") || 0;
+        const currentNotability = qualities.get("Notability") || 0;
+        if (currentMakingWaves < currentNotability) {
+            lines.push(`You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`);
+        }
+
+        if (balmoralMoment != null) {
+            const now = new Date().getTime();
+            if (balmoralMoment > now) {
+                const balmoralTimeRemaining = calculateRemainingTime(balmoralMoment);
+                lines.push(`A Gift from Balmoral will be available ${balmoralTimeRemaining}`);
+            } else {
+                lines.push(`A Gift from Balmoral is waiting for you.`);
+            }
+        }
+
+        if (lines.length === 0) {
+            infoDisplay.style.display = "hidden";
+        } else {
+            while(infoDisplay.firstChild) {
+                infoDisplay.removeChild(infoDisplay.lastChild);
+            }
+
+            for (const line of lines) {
+                const info = document.createElement("h2");
+                info.setAttribute("id", "tth_info_display");
+                info.classList.add("media__heading", "heading", "heading--3", "storylet__heading");
+                info.style.cssText = "text-align: center; display: hidden;";
+                info.textContent = line;
+                infoDisplay.appendChild(info);
+            }
+
+            infoDisplay.style.display = "block";
+        }
     }
 
     async function getTTHMoment() {
@@ -197,6 +245,11 @@
         let data = JSON.parse(response.target.responseText);
 
         if (targetUrl.endsWith("/api/storylet/choosebranch")) {
+            if (BALMORAL_GIFT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                balmoralMoment = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+                saveTrackedMoments();
+            }
+
             if ("messages" in data) {
                 // NB: For some inexplicable reason gaining something is marked as "decrease" *sigh*
                 for (const change of data.messages) {
@@ -240,9 +293,20 @@
         };
     }
 
+    function sendBypass(original_function) {
+        return function (body) {
+            this._originalRequest = arguments[0] ? JSON.parse(arguments[0]) : {};
+            this._timestamp = new Date();
+            return original_function.apply(this, arguments);
+        };
+    }
+
+    loadTrackedMoments();
+
     debug("Setting up API interceptors.");
     XMLHttpRequest.prototype.setRequestHeader = installAuthSniffer(XMLHttpRequest.prototype.setRequestHeader);
     XMLHttpRequest.prototype.open = openBypass(XMLHttpRequest.prototype.open);
+    XMLHttpRequest.prototype.send = sendBypass(XMLHttpRequest.prototype.send);
 
     debug("Setting up DOM mutation observer.")
     let mainContentObserver = new MutationObserver(((mutations, observer) => {
@@ -269,6 +333,7 @@
 
                 if (insertionPoint != null) {
                     insertTTHDisplay(insertionPoint);
+
                     updateState();
                     break;
                 }
