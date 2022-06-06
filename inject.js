@@ -3,6 +3,9 @@
     const MILLISECONDS_IN_MINUTE = 60 * 1000;
     const MILLISECONDS_IN_HOUR = 60 * MILLISECONDS_IN_MINUTE;
     const SEVEN_DAYS_IN_MILLISECONDS = 7 * 24 * MILLISECONDS_IN_HOUR;
+    // Sometimes "living story" events do not trigger strictly on the hour,
+    // so it is good to give them some leeway.
+    const EVENT_TRIGGER_LEEWAY = 10 * MILLISECONDS_IN_MINUTE;
     const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
     const KHANATE_REPORT_BRANCH_IDS = [250681];
 
@@ -261,12 +264,12 @@
 
         if (targetUrl.endsWith("/api/storylet/choosebranch")) {
             if (BALMORAL_GIFT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
-                balmoralMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS;
+                balmoralMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
                 saveTrackedMoments();
             }
 
             if (KHANATE_REPORT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
-                khanateMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS;
+                khanateMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
                 saveTrackedMoments();
             }
 
