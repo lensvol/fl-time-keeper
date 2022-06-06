@@ -2,7 +2,9 @@
     const DONE = 4;
     const MILLISECONDS_IN_MINUTE = 60 * 1000;
     const MILLISECONDS_IN_HOUR = 60 * MILLISECONDS_IN_MINUTE;
+    const SEVEN_DAYS_IN_MILLISECONDS = 7 * 24 * MILLISECONDS_IN_HOUR;
     const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
+    const KHANATE_REPORT_BRANCH_IDS = [250681];
 
     let authToken = null;
     let tthDisplay = null;
@@ -11,17 +13,20 @@
 
     let tthMoment = null;
     let balmoralMoment = null;
+    let khanateMoment = null;
 
     const qualities = new Map();
 
     function saveTrackedMoments() {
         if (balmoralMoment) {
             localStorage.fl_tk_balmoral_moment = balmoralMoment;
+            localStorage.fl_tk_khanate_moment = khanateMoment;
         }
     }
 
     function loadTrackedMoments() {
         balmoralMoment = localStorage.fl_tk_balmoral_moment || null;
+        khanateMoment = localStorage.fl_tk_khanate_moment || null;
     }
 
     function debug(message) {
@@ -168,6 +173,16 @@
             }
         }
 
+        if (khanateMoment != null) {
+            const now = new Date().getTime();
+            if (khanateMoment > now) {
+                const khanateTimeRemaining = calculateRemainingTime(khanateMoment);
+                lines.push(`A 'report' from Khagan's Palace is due ${khanateTimeRemaining}`);
+            } else {
+                lines.push(`A 'report' is waiting for you in Khanate.`);
+            }
+        }
+
         if (lines.length === 0) {
             infoDisplay.style.display = "hidden";
         } else {
@@ -246,7 +261,12 @@
 
         if (targetUrl.endsWith("/api/storylet/choosebranch")) {
             if (BALMORAL_GIFT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
-                balmoralMoment = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+                balmoralMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS;
+                saveTrackedMoments();
+            }
+
+            if (KHANATE_REPORT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                khanateMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS;
                 saveTrackedMoments();
             }
 
