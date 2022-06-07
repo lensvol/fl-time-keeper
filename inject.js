@@ -41,20 +41,26 @@
 
     function tillNextStateUpdate() {
         const now = new Date();
+        const earliestMoment = Math.min(
+            tthMoment,
+            // Both Khanate and Balmoral moments may yet be unknown at that point
+            balmoralMoment || Number.MAX_SAFE_INTEGER,
+            khanateMoment || Number.MAX_SAFE_INTEGER,
+        )
 
-        if (now.getTime() > tthMoment) {
+        if (now.getTime() > earliestMoment) {
             // TTH can be a little late and TTH endpoint can still display
             // old data past the specified moment. We'll take some time
             // until querying API again.
             return 10 * MILLISECONDS_IN_MINUTE;
-        } else if (tthMoment - now.getTime() < MILLISECONDS_IN_HOUR) {
+        } else if (earliestMoment - now.getTime() < MILLISECONDS_IN_HOUR) {
             // When there is a less then one hour left, update the display
             // once per minute.
             return MILLISECONDS_IN_MINUTE;
         }
 
         const nowMinutes = now.getMinutes();
-        const destMinutes = new Date(tthMoment).getMinutes();
+        const destMinutes = new Date(earliestMoment).getMinutes();
 
         // Since TTH does not arrive on the clear cut hourly boundary,
         // we need first to align our updates with the precise time in minutes.
@@ -143,10 +149,14 @@
             return;
         }
 
-        const currentMakingWaves = qualities.get("Making Waves") || 0;
-        const currentNotability = qualities.get("Notability") || 0;
-        if (currentMakingWaves < currentNotability) {
-            lines.push(`You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`);
+        if (balmoralMoment != null) {
+            const now = new Date().getTime();
+            if (balmoralMoment > now) {
+                const balmoralTimeRemaining = calculateRemainingTime(balmoralMoment);
+                lines.push(`A Gift from Balmoral will be available ${balmoralTimeRemaining}`);
+            } else {
+                lines.push(`A Gift from Balmoral is waiting for you.`);
+            }
         }
 
         if (tthMoment != null) {
@@ -156,14 +166,10 @@
             lines.push(`Time the Healer cometh again someday.`);
         }
 
-        if (balmoralMoment != null) {
-            const now = new Date().getTime();
-            if (balmoralMoment > now) {
-                const balmoralTimeRemaining = calculateRemainingTime(balmoralMoment);
-                lines.push(`A Gift from Balmoral will be available ${balmoralTimeRemaining}`);
-            } else {
-                lines.push(`A Gift from Balmoral is waiting for you.`);
-            }
+        const currentMakingWaves = qualities.get("Making Waves") || 0;
+        const currentNotability = qualities.get("Notability") || 0;
+        if (currentMakingWaves < currentNotability) {
+            lines.push(`You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`);
         }
 
         if (khanateMoment != null) {
