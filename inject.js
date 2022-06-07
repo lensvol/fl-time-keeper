@@ -10,7 +10,6 @@
     const KHANATE_REPORT_BRANCH_IDS = [250681];
 
     let authToken = null;
-    let tthDisplay = null;
     let infoDisplay = null;
     let tthContainer = null;
 
@@ -79,7 +78,6 @@
             return;
         }
 
-        updateTTHDisplay();
         updateInfoDisplay();
         debug(`Next display update in ${tillNextStateUpdate() / (MILLISECONDS_IN_MINUTE)} minutes.`);
         setTimeout(updateState, tillNextStateUpdate());
@@ -113,18 +111,6 @@
         return remainingText;
     }
 
-    function updateTTHDisplay() {
-        if (tthDisplay == null) {
-            return;
-        }
-
-        const remainingText = calculateRemainingTime(tthMoment);
-
-        tthDisplay.textContent = `Time the Healer cometh ${remainingText}`;
-
-        updateInfoDisplay();
-    }
-
     function insertTTHDisplay(cardsDiv) {
         const containerDiv = document.createElement("div");
         containerDiv.classList.add("media", "storylet");
@@ -140,15 +126,7 @@
         const contentsDiv = document.createElement("div");
         contentsDiv.className = "storylet__title-and-description";
 
-        const title = document.createElement("h2");
-        title.setAttribute("id", "tth_display");
-        title.classList.add("media__heading", "heading", "heading--3", "storylet__heading");
-        title.style.cssText = "text-align: center;";
-        title.textContent = "Time the Healer cometh.";
-        contentsDiv.appendChild(title);
-
         infoDisplay = document.createElement("div");
-        tthDisplay = title;
         tthContainer = containerDiv;
 
         contentsDiv.appendChild(infoDisplay);
@@ -169,6 +147,13 @@
         const currentNotability = qualities.get("Notability") || 0;
         if (currentMakingWaves < currentNotability) {
             lines.push(`You will lose Notability! (${currentMakingWaves} MW < ${currentNotability} Nota)`);
+        }
+
+        if (tthMoment != null) {
+            const remainingText = calculateRemainingTime(tthMoment);
+            lines.push(`Time the Healer cometh ${remainingText}`);
+        } else {
+            lines.push(`Time the Healer cometh again someday.`);
         }
 
         if (balmoralMoment != null) {
@@ -377,7 +362,7 @@
                 const containers = node.getElementsByClassName("cards")
                 if (containers.length !== 0 || node.classList.contains("cards")) {
                     tthContainer.remove();
-                    tthContainer = tthDisplay = infoDisplay = null;
+                    tthContainer = infoDisplay = null;
                     break;
                 }
             }
