@@ -4,9 +4,10 @@
 
 ![screenshot](https://raw.githubusercontent.com/lensvol/fl-time-keeper/master/screenshot.png)
 
-Display convenient reminder when Time the Healer comes.
-
-_NB: This extension is **not** yet whitelisted by Failbetter Games. Use at your own risk!_ 
+Display convenient reminder when specific moments happen inside the game:
+* Coming of **Time the Healer**
+* **Balmoral's Gift** being available
+* **Report from your agent in Khagan's Palace** being due
 
 Grab it here:
 * [Releases page](https://github.com/lensvol/fl-time-keeper/releases) (most up-to-date, see below for instructions)
