@@ -10,6 +10,8 @@
     const KHANATE_REPORT_BRANCH_IDS = [250681];
 
     let authToken = null;
+    let currentUserId = null;
+
     let infoDisplay = null;
     let tthContainer = null;
 
@@ -20,15 +22,47 @@
     const qualities = new Map();
 
     function saveTrackedMoments() {
-        if (balmoralMoment) {
-            localStorage.fl_tk_balmoral_moment = balmoralMoment;
-            localStorage.fl_tk_khanate_moment = khanateMoment;
+        let balmoralRecord = localStorage.fl_tk_balmoral_moment || {};
+        try {
+            balmoralRecord = JSON.parse(balmoralRecord);
+            if (typeof balmoralRecord !== "object") {
+                balmoralRecord = {};
+            }
+        } catch (e) {
+            balmoralRecord = {};
         }
+        balmoralRecord[`uid_${currentUserId}`] = balmoralMoment;
+        localStorage.fl_tk_balmoral_moment = JSON.stringify(balmoralRecord);
+
+        let khanateRecord = localStorage.fl_tk_khanate_moment || {};
+        try {
+            khanateRecord = JSON.parse(khanateRecord);
+            if (typeof khanateRecord !== "object") {
+                khanateRecord = {};
+            }
+        } catch (e) {
+            khanateRecord = {};
+        }
+        khanateRecord[`uid_${currentUserId}`] = khanateMoment;
+        localStorage.fl_tk_khanate_moment = JSON.stringify(khanateRecord);
     }
 
     function loadTrackedMoments() {
-        balmoralMoment = localStorage.fl_tk_balmoral_moment || null;
-        khanateMoment = localStorage.fl_tk_khanate_moment || null;
+        const balmoralRecord = localStorage.fl_tk_balmoral_moment || null;
+        try {
+            const decoded = JSON.parse(balmoralRecord);
+            balmoralMoment = decoded[`uid_${currentUserId}`] || null;
+        } catch (e) {
+            balmoralMoment = null;
+        }
+
+        const khanateRecord = localStorage.fl_tk_khanate_moment || null;
+        try {
+            const decoded = JSON.parse(khanateRecord);
+            khanateMoment = decoded[`uid_${currentUserId}`] || null;
+        } catch (e) {
+            khanateMoment = null;
+        }
     }
 
     function debug(message) {
@@ -292,6 +326,10 @@
         }
 
         if (response.currentTarget.responseURL.includes("/api/character/myself")) {
+            currentUserId = data.character.user.id;
+            debug(`Current user ID: ${currentUserId}`);
+            loadTrackedMoments();
+
             for (const group of data.possessions) {
                 for (const quality of group.possessions) {
                     if (quality.nature !== "Status") {
@@ -315,12 +353,9 @@
     function sendBypass(original_function) {
         return function (body) {
             this._originalRequest = arguments[0] ? JSON.parse(arguments[0]) : {};
-            this._timestamp = new Date();
             return original_function.apply(this, arguments);
         };
     }
-
-    loadTrackedMoments();
 
     debug("Setting up API interceptors.");
     XMLHttpRequest.prototype.setRequestHeader = installAuthSniffer(XMLHttpRequest.prototype.setRequestHeader);
