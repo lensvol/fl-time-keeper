@@ -6,8 +6,8 @@
     // Sometimes "living story" events do not trigger strictly on the hour,
     // so it is good to give them some leeway.
     const EVENT_TRIGGER_LEEWAY = 10 * MILLISECONDS_IN_MINUTE;
-    const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600, 210566, 247642];
-    const KHANATE_REPORT_BRANCH_IDS = [250681, 210565];
+    const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
+    const KHANATE_REPORT_BRANCH_IDS = [250681];
 
     let authToken = null;
     let currentUserId = null;
