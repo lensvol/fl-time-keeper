@@ -6,8 +6,8 @@
     // Sometimes "living story" events do not trigger strictly on the hour,
     // so it is good to give them some leeway.
     const EVENT_TRIGGER_LEEWAY = 10 * MILLISECONDS_IN_MINUTE;
-    const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
-    const KHANATE_REPORT_BRANCH_IDS = [250681];
+    const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600, 210566, 247642];
+    const KHANATE_REPORT_BRANCH_IDS = [250681, 210565];
 
     let authToken = null;
     let currentUserId = null;
@@ -22,29 +22,33 @@
     const qualities = new Map();
 
     function saveTrackedMoments() {
-        let balmoralRecord = localStorage.fl_tk_balmoral_moment || {};
-        try {
-            balmoralRecord = JSON.parse(balmoralRecord);
-            if (typeof balmoralRecord !== "object") {
+        if (balmoralMoment != null) {
+            let balmoralRecord = localStorage.fl_tk_balmoral_moment || {};
+            try {
+                balmoralRecord = JSON.parse(balmoralRecord);
+                if (typeof balmoralRecord !== "object") {
+                    balmoralRecord = {};
+                }
+            } catch (e) {
                 balmoralRecord = {};
             }
-        } catch (e) {
-            balmoralRecord = {};
+            balmoralRecord[`uid_${currentUserId}`] = balmoralMoment;
+            localStorage.fl_tk_balmoral_moment = JSON.stringify(balmoralRecord);
         }
-        balmoralRecord[`uid_${currentUserId}`] = balmoralMoment;
-        localStorage.fl_tk_balmoral_moment = JSON.stringify(balmoralRecord);
 
-        let khanateRecord = localStorage.fl_tk_khanate_moment || {};
-        try {
-            khanateRecord = JSON.parse(khanateRecord);
-            if (typeof khanateRecord !== "object") {
+        if (khanateMoment != null) {
+            let khanateRecord = localStorage.fl_tk_khanate_moment || {};
+            try {
+                khanateRecord = JSON.parse(khanateRecord);
+                if (typeof khanateRecord !== "object") {
+                    khanateRecord = {};
+                }
+            } catch (e) {
                 khanateRecord = {};
             }
-        } catch (e) {
-            khanateRecord = {};
+            khanateRecord[`uid_${currentUserId}`] = khanateMoment;
+            localStorage.fl_tk_khanate_moment = JSON.stringify(khanateRecord);
         }
-        khanateRecord[`uid_${currentUserId}`] = khanateMoment;
-        localStorage.fl_tk_khanate_moment = JSON.stringify(khanateRecord);
     }
 
     function loadTrackedMoments() {
