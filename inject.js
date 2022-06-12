@@ -130,8 +130,8 @@
     function calculateRemainingTime(moment) {
         const now = new Date().getTime();
         const minutesLeft = Math.round((moment - now) / (MILLISECONDS_IN_MINUTE));
-        const hoursLeft = Math.floor(minutesLeft / 60);
-        const daysLeft = Math.ceil(hoursLeft / 24);
+        const hoursLeft = Math.floor(minutesLeft / 60) + (minutesLeft % 60 >= 30 ? 1 : 0);
+        const daysLeft = hoursLeft >= 24 ? Math.ceil(hoursLeft / 24) : 0;
 
         let remainingText;
 
