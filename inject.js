@@ -382,6 +382,11 @@
                 wellspringMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
                 saveTrackedMoments();
             }
+            
+            if (WASWOOD_CALENDAR_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                calendarMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
+                saveTrackedMoments();
+            }
 
             if ("messages" in data) {
                 // NB: For some inexplicable reason gaining something is marked as "decrease" *sigh*
