@@ -8,6 +8,7 @@
     const EVENT_TRIGGER_LEEWAY = 10 * MILLISECONDS_IN_MINUTE;
     const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
     const KHANATE_REPORT_BRANCH_IDS = [250681];
+    const WELLSPRING_BRANCH_IDS = [244785, 244786]
 
     let authToken = null;
     let currentUserId = null;
@@ -18,6 +19,7 @@
     let tthMoment = null;
     let balmoralMoment = null;
     let khanateMoment = null;
+    let wellspringMoment = null;
 
     const qualities = new Map();
 
@@ -49,6 +51,19 @@
             khanateRecord[`uid_${currentUserId}`] = khanateMoment;
             localStorage.fl_tk_khanate_moment = JSON.stringify(khanateRecord);
         }
+        
+        if (wellspringMoment != null) {
+            let wellspringRecord = localStorage.fl_tk_wellspring_moment || {};
+            try {
+                wellspringRecord = JSON.parse(wellspringRecord);
+                if (typeof wellspringRecord !== "object") {
+                    wellspringRecord = {};
+                }
+            } catch (e) {
+                wellspringRecord = {};
+            }
+            wellspringRecord[`uid_${currentUserId}`] = wellspringMoment;
+            localStorage.fl_tk_wellspring_moment = JSON.stringify(wellspringRecord);
     }
 
     function loadTrackedMoments() {
@@ -66,6 +81,14 @@
             khanateMoment = decoded[`uid_${currentUserId}`] || null;
         } catch (e) {
             khanateMoment = null;
+        }
+        
+        const wellspringRecord = localStorage.fl_tk_wellspring_moment || null;
+        try {
+            const decoded = JSON.parse(wellspringRecord);
+            wellspringMoment = decoded[`uid_${currentUserId}`] || null;
+        } catch (e) {
+            wellspringMoment = null;
         }
     }
 
@@ -219,6 +242,16 @@
                 lines.push(`A 'report' is waiting for you in Khanate.`);
             }
         }
+        
+        if (wellspringMoment != null) {
+            const now = new Date().getTime();
+            if (wellspringMoment > now) {
+                const wellspringTimeRemaining = calculateRemainingTime(wellspringMoment);
+                lines.push(`The Viric glow will fade in ${wellspringTimeRemaining}`);
+            } else {
+                lines.push(`The Viric glow has faded.`);
+            }
+        }
 
         if (lines.length === 0) {
             infoDisplay.style.display = "hidden";
@@ -304,6 +337,11 @@
 
             if (KHANATE_REPORT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
                 khanateMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
+                saveTrackedMoments();
+            }
+            
+            if (WELLSPRING_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                wellspringMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
                 saveTrackedMoments();
             }
 
