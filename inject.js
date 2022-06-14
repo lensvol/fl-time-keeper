@@ -8,6 +8,8 @@
     const EVENT_TRIGGER_LEEWAY = 10 * MILLISECONDS_IN_MINUTE;
     const BALMORAL_GIFT_BRANCH_IDS = [243583, 243592, 243600];
     const KHANATE_REPORT_BRANCH_IDS = [250681];
+    const WELLSPRING_BRANCH_IDS = [244785, 244786]
+    const WASWOOD_CALENDAR_BRANCH_IDS = [254769, 254764, 254597, 254763, 254765, 254599, 254598, 254767, 254768, 234347, 254844, 254842, 234348, 254510, 254511, 224801, 254843]
 
     let authToken = null;
     let currentUserId = null;
@@ -18,6 +20,8 @@
     let tthMoment = null;
     let balmoralMoment = null;
     let khanateMoment = null;
+    let wellspringMoment = null;
+    let calendarMoment = null
 
     const qualities = new Map();
 
@@ -49,6 +53,34 @@
             khanateRecord[`uid_${currentUserId}`] = khanateMoment;
             localStorage.fl_tk_khanate_moment = JSON.stringify(khanateRecord);
         }
+        
+        if (wellspringMoment != null) {
+            let wellspringRecord = localStorage.fl_tk_wellspring_moment || {};
+            try {
+                wellspringRecord = JSON.parse(wellspringRecord);
+                if (typeof wellspringRecord !== "object") {
+                    wellspringRecord = {};
+                }
+            } catch (e) {
+                wellspringRecord = {};
+            }
+            wellspringRecord[`uid_${currentUserId}`] = wellspringMoment;
+            localStorage.fl_tk_wellspring_moment = JSON.stringify(wellspringRecord);
+        }
+        
+        if (calendarMoment != null) {
+            let calendarRecord = localStorage.fl_tk_calendar_moment || {};
+            try {
+                calendarRecord = JSON.parse(calendarRecord);
+                if (typeof calendarRecord !== "object") {
+                    calendarRecord = {};
+                }
+            } catch (e) {
+                calendarRecord = {};
+            }
+            calendarRecord[`uid_${currentUserId}`] = calendarMoment;
+            localStorage.fl_tk_calendar_moment = JSON.stringify(calendarRecord);
+        }
     }
 
     function loadTrackedMoments() {
@@ -67,6 +99,22 @@
         } catch (e) {
             khanateMoment = null;
         }
+        
+        const wellspringRecord = localStorage.fl_tk_wellspring_moment || null;
+        try {
+            const decoded = JSON.parse(wellspringRecord);
+            wellspringMoment = decoded[`uid_${currentUserId}`] || null;
+        } catch (e) {
+            wellspringMoment = null;
+        }
+        
+        const calendarRecord = localStorage.fl_tk_calendar_moment || null;
+        try {
+            const decoded = JSON.parse(calendarRecord);
+            calendarMoment = decoded[`uid_${currentUserId}`] || null;
+        } catch (e) {
+            calendarMoment = null;
+        }
     }
 
     function debug(message) {
@@ -81,9 +129,11 @@
         const now = new Date();
         const earliestMoment = Math.min(
             tthMoment,
-            // Both Khanate and Balmoral moments may yet be unknown at that point
+            // Any and all of Khanate, Balmoral, Wellspring and Calendar moments may yet be unknown at that point
             balmoralMoment || Number.MAX_SAFE_INTEGER,
             khanateMoment || Number.MAX_SAFE_INTEGER,
+            wellspringMoment || Number.MAX_SAFE_INTEGER,
+            calendarMoment || Number.MAX_SAFE_INTEGER,
         )
 
         if (now.getTime() > earliestMoment) {
@@ -219,6 +269,27 @@
                 lines.push(`A 'report' is waiting for you in Khanate.`);
             }
         }
+        
+        if (wellspringMoment != null) {
+            const now = new Date().getTime();
+            if (wellspringMoment > now) {
+                const wellspringTimeRemaining = calculateRemainingTime(wellspringMoment);
+                lines.push(`The Viric glow will fade in ${wellspringTimeRemaining}`);
+            } else {
+                lines.push(`The Viric glow has faded.`);
+            }
+        }
+        
+        if (calendarMoment != null) {
+            const now = new Date().getTime();
+            if (calendarMoment > now) {
+                const calendarTimeRemaining = calculateRemainingTime(calendarMoment);
+                lines.push(`A new Waswood Jaunt will be permitted in ${calendarTimeRemaining}`);
+            } else {
+                lines.push(`A new event awaits in the Waswood.`);
+            }
+        }
+
 
         if (lines.length === 0) {
             infoDisplay.style.display = "hidden";
@@ -304,6 +375,16 @@
 
             if (KHANATE_REPORT_BRANCH_IDS.includes(this._originalRequest.branchId)) {
                 khanateMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
+                saveTrackedMoments();
+            }
+            
+            if (WELLSPRING_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                wellspringMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
+                saveTrackedMoments();
+            }
+            
+            if (WASWOOD_CALENDAR_BRANCH_IDS.includes(this._originalRequest.branchId)) {
+                calendarMoment = new Date().getTime() + SEVEN_DAYS_IN_MILLISECONDS + EVENT_TRIGGER_LEEWAY;
                 saveTrackedMoments();
             }
 
