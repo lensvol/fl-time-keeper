@@ -460,13 +460,28 @@
                 }
 
                 let insertionPoint = null;
-
                 if (node.classList.contains("cards")) {
                     insertionPoint = node;
                 } else {
-                    const containers = node.getElementsByClassName("cards")
+                    const containers = node.getElementsByClassName("cards");
                     if (containers.length !== 0) {
                         insertionPoint = containers[0];
+                    } else {
+                        const existingCardContainers = document.getElementsByClassName("cards");
+                        if (existingCardContainers.length !== 0) {
+                            insertionPoint = existingCardContainers[0];
+                        }
+                    }
+                }
+
+                if (insertionPoint == null) {
+                    if (node.classList.contains("storylets__welcome-and-travel")) {
+                        insertionPoint = node;
+                    } else {
+                        const containers = node.getElementsByClassName("storylets__welcome-and-travel")
+                        if (containers.length !== 0) {
+                            insertionPoint = containers[0];
+                        }
                     }
                 }
 
@@ -485,8 +500,15 @@
                     continue;
                 }
 
-                const containers = node.getElementsByClassName("cards")
-                if (containers.length !== 0 || node.classList.contains("cards")) {
+                const cardsContainers = node.getElementsByClassName("cards")
+                if (cardsContainers.length !== 0 || node.classList.contains("cards")) {
+                    tthContainer.remove();
+                    tthContainer = infoDisplay = null;
+                    break;
+                }
+
+                const travelContainers = node.getElementsByClassName("storylets__welcome-and-travel")
+                if (tthContainer && travelContainers.length !== 0 || node.classList.contains("storylets__welcome-and-travel")) {
                     tthContainer.remove();
                     tthContainer = infoDisplay = null;
                     break;
