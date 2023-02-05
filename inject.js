@@ -168,7 +168,10 @@
                     tthMoment = moment;
                     updateState();
                 })
-                .catch(err => error(err));
+                .catch(err => {
+                    updateInfoDisplay();
+                    error(err);
+                });
             return;
         }
 
